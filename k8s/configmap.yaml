@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: voice-rag-config
+  namespace: voice-rag
+data:
+  # Ollama Desktop on the host machine (not in-cluster).
+  # Docker Desktop K8s: host.docker.internal
+  # Minikube: change to http://host.minikube.internal:11434
+  OLLAMA_BASE_URL: "http://host.docker.internal:11434"
+  OLLAMA_MODEL: "gpt-oss:120b-cloud"
+  DATABASE_URL: "sqlite+aiosqlite:///./sql_app.db"
+  CHROMA_PERSIST_DIRECTORY: "./chroma_db"

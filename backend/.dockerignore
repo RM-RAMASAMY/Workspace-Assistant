@@ -1,0 +1,9 @@
+venv
+__pycache__
+*.pyc
+.pytest_cache
+.env
+sql_app.db
+chroma_db
+uploads
+sample_docs

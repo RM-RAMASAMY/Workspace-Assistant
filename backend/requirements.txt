@@ -1,0 +1,16 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+aiosqlite
+pydantic-settings
+pydantic[email]
+PyMuPDF
+python-docx
+sentence-transformers
+rank-bm25
+chromadb
+python-jose[cryptography]
+python-multipart
+websockets
+httpx
+passlib[bcrypt]
