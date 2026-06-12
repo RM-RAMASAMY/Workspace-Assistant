@@ -2,8 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import LoginPage from './components/LoginPage';
-import Sidebar from './components/Sidebar';
-import ChatInterface from './components/ChatInterface';
+import MainLayout from './components/MainLayout';
 
 const ProtectedRoute = ({ children }) => {
   const { token, loading } = useAuth();
@@ -17,15 +16,6 @@ const ProtectedRoute = ({ children }) => {
   }
   
   return children;
-};
-
-const MainLayout = () => {
-  return (
-    <div className="flex h-screen bg-slate-900 overflow-hidden">
-      <Sidebar />
-      <ChatInterface />
-    </div>
-  );
 };
 
 function App() {

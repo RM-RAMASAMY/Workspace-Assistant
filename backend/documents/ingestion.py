@@ -4,7 +4,7 @@ import fitz  # PyMuPDF
 import docx
 from sentence_transformers import SentenceTransformer
 
-from .chunker import recursive_character_chunker
+from .chunk_metadata import build_chunks_with_metadata
 from retrieval.vector_store import add_chunks_to_vector_store
 from documents.models import Document, Chunk, DocumentStatus
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -39,33 +39,38 @@ async def ingest_document(document: Document, db: AsyncSession):
         else:
             raise ValueError(f"Unsupported file type: {ext}")
             
-        # 2. Chunking
-        raw_chunks = recursive_character_chunker(text, chunk_size=1000, chunk_overlap=100)
-        
+        # 2. Chunking with section/line metadata for citations and document viewer
+        enriched_chunks = build_chunks_with_metadata(text, chunk_size=1000, chunk_overlap=100)
+        chunk_texts = [chunk["text"] for chunk in enriched_chunks]
+
         # 3. Embeddings
-        embeddings = embedder.encode(raw_chunks).tolist()
-        
+        embeddings = embedder.encode(chunk_texts).tolist()
+
         # 4. Save to ChromaDB & SQLite
         chunk_ids = []
         metadatas = []
         documents_text = []
-        
-        for i, chunk_text in enumerate(raw_chunks):
+
+        for chunk in enriched_chunks:
             chunk_id = str(uuid.uuid4())
             chunk_ids.append(chunk_id)
-            documents_text.append(chunk_text)
+            documents_text.append(chunk["text"])
             metadatas.append({
                 "document_id": document.id,
                 "title": document.title,
-                "access_level": document.access_level,
-                "chunk_index": i
+                "access_level": int(document.access_level),
+                "chunk_index": int(chunk["chunk_index"]),
+                "section_title": chunk["section_title"] or "",
+                "line_start": int(chunk["line_start"]),
+                "line_end": int(chunk["line_end"]),
             })
-            
-            # Save metadata to SQLite
+
             db_chunk = Chunk(
                 id=chunk_id,
                 document_id=document.id,
-                chunk_index=i
+                chunk_index=chunk["chunk_index"],
+                section_title=chunk["section_title"] or None,
+                page_number=chunk["line_start"] or None,
             )
             db.add(db_chunk)
             

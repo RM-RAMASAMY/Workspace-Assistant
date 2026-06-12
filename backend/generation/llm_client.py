@@ -20,9 +20,11 @@ class OllamaClient:
             "stream": True
         }
         
-        async with httpx.AsyncClient() as client:
+        timeout = httpx.Timeout(connect=10.0, read=120.0, write=30.0, pool=10.0)
+        async with httpx.AsyncClient(timeout=timeout) as client:
             try:
                 async with client.stream("POST", url, json=payload, headers=headers) as response:
+                    response.raise_for_status()
                     async for line in response.aiter_lines():
                         if line:
                             try:

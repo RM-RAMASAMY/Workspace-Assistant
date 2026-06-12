@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     # API Keys
     DEEPGRAM_API_KEY: str = ""
     ELEVENLABS_API_KEY: str = ""
+    ELEVENLABS_VOICE_ID: str = "hpp4J3VqNfWAUOO0d1Us"
     OLLAMA_BASE_URL: str = "http://localhost:11434"
     OLLAMA_MODEL: str = "gpt-oss:120b-cloud"
     

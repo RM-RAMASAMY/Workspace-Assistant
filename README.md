@@ -25,9 +25,9 @@ On first run, `./start.sh` creates `k8s/secret.yaml` from the example. Edit it w
 ./start.sh
 ```
 
-This builds the Docker images and deploys to the `voice-rag` Kubernetes namespace.
+This builds the Docker images, deploys to the `voice-rag` Kubernetes namespace, and seeds demo users/documents automatically.
 
-- **NodePort:** http://localhost:30080
+- **App:** http://localhost:30080
 - **Ingress** (if nginx IngressClass is installed): http://voice-rag.local — add `127.0.0.1 voice-rag.local` to your hosts file
 
 ### 3. Stop
@@ -49,8 +49,10 @@ This builds the Docker images and deploys to the `voice-rag` Kubernetes namespac
 
 - Ollama runs on the **host** via Ollama Desktop (not in Kubernetes). The backend reaches it at `host.docker.internal:11434`.
 - Check pod status: `kubectl get pods -n voice-rag`
-- Seed demo data (one-time, after backend pod is running):
+- `./start.sh` runs the seed scripts automatically after deploy. To re-run manually:
   ```bash
   kubectl exec -n voice-rag deploy/backend -- python seed_data.py
   kubectl exec -n voice-rag deploy/backend -- python create_samples.py
+  kubectl exec -n voice-rag deploy/backend -- python ingest_samples.py
   ```
+  To remove duplicate sample documents: `kubectl exec -n voice-rag deploy/backend -- python cleanup_duplicate_documents.py`

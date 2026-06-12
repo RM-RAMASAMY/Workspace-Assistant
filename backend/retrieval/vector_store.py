@@ -31,3 +31,17 @@ def delete_document_from_vector_store(document_id):
     collection.delete(
         where={"document_id": document_id}
     )
+
+
+def get_chunk_by_id(chunk_id: str):
+    result = collection.get(ids=[chunk_id], include=["documents", "metadatas"])
+    if not result or not result.get("ids"):
+        return None
+
+    metadata = result["metadatas"][0] if result.get("metadatas") else {}
+    document = result["documents"][0] if result.get("documents") else ""
+    return {
+        "id": result["ids"][0],
+        "text": document,
+        "metadata": metadata or {},
+    }

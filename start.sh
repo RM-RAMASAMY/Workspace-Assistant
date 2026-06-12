@@ -30,9 +30,10 @@
 #   2. Edit k8s/secret.yaml with your Deepgram and ElevenLabs API keys
 #   3. Run ./start.sh again
 #
-# After deploy (optional, one-time seed data):
-#   kubectl exec -n voice-rag deploy/backend -- python seed_data.py
-#   kubectl exec -n voice-rag deploy/backend -- python create_samples.py
+# After deploy (one-time seed data — all three are needed for docs to appear):
+#   kubectl exec -n voice-rag deploy/backend -- python seed_data.py       # demo users + roles
+#   kubectl exec -n voice-rag deploy/backend -- python create_samples.py  # write sample .md files
+#   kubectl exec -n voice-rag deploy/backend -- python ingest_samples.py  # load into DB + vector store
 #
 # Access the app:
 #   - NodePort (default):  http://localhost:30080
@@ -76,9 +77,16 @@ fi
 # Docker Desktop K8s shares the same daemon, so pods can pull them directly.
 # The backend image is large (~2-4 GB) due to PyTorch + sentence-transformers;
 # first build may take several minutes.
-echo "Building Docker images..."
-docker build -t voice-rag-backend:latest "$PROJECT_ROOT/backend"
-docker build -t voice-rag-frontend:latest "$PROJECT_ROOT/frontend"
+# A unique tag per build so Kubernetes always loads the freshly built image.
+# On Docker Desktop's kind-based Kubernetes the kubelet caches images by tag, so
+# reusing :latest makes it keep the STALE image even after a rebuild. A new tag
+# (combined with imagePullPolicy: IfNotPresent) forces it to import the new build.
+# We also tag :latest for convenience / manual `kubectl apply -f k8s/`.
+IMAGE_TAG="build-$(date +%Y%m%d%H%M%S)"
+
+echo "Building Docker images (tag: $IMAGE_TAG)..."
+docker build -t "voice-rag-backend:$IMAGE_TAG" -t voice-rag-backend:latest "$PROJECT_ROOT/backend"
+docker build -t "voice-rag-frontend:$IMAGE_TAG" -t voice-rag-frontend:latest "$PROJECT_ROOT/frontend"
 
 # -----------------------------------------------------------------------------
 # Step 3: Apply Kubernetes manifests
@@ -99,6 +107,14 @@ kubectl apply -f "$K8S_DIR/backend-service.yaml"
 kubectl apply -f "$K8S_DIR/frontend-deployment.yaml"
 kubectl apply -f "$K8S_DIR/frontend-service.yaml"
 
+# Pin the deployments to this build's unique image tag and wait for the rollout.
+# This guarantees the running pods use the image we just built (not a stale cache).
+echo "Rolling out image tag $IMAGE_TAG..."
+kubectl set image -n voice-rag deployment/backend backend="voice-rag-backend:$IMAGE_TAG"
+kubectl set image -n voice-rag deployment/frontend frontend="voice-rag-frontend:$IMAGE_TAG"
+kubectl rollout status -n voice-rag deployment/backend --timeout=300s
+kubectl rollout status -n voice-rag deployment/frontend --timeout=180s
+
 # -----------------------------------------------------------------------------
 # Step 4: Ingress (optional)
 # -----------------------------------------------------------------------------
@@ -112,19 +128,31 @@ if kubectl get ingressclass nginx >/dev/null 2>&1; then
   echo "  App: http://voice-rag.local"
 else
   echo ""
-  echo "No nginx IngressClass found — using NodePort instead."
-  echo "  App: http://localhost:30080"
+  echo "No nginx IngressClass found."
+  echo "  Docker Desktop's classic K8s publishes NodePort at: http://localhost:30080"
+  echo "  Docker Desktop's newer kind-based K8s does NOT publish NodePorts on localhost."
+  echo "  If 30080 doesn't load, use a port-forward instead:"
+  echo "    kubectl port-forward -n voice-rag svc/frontend 8080:80"
+  echo "    then open http://localhost:8080"
 fi
 
 # -----------------------------------------------------------------------------
 # Done — print next steps
 # -----------------------------------------------------------------------------
 echo ""
-echo "Voice RAG Chatbot is deploying to Kubernetes."
+echo "Seeding demo data (idempotent — safe to re-run)..."
+kubectl exec -n voice-rag deploy/backend -- python seed_data.py
+kubectl exec -n voice-rag deploy/backend -- python create_samples.py
+kubectl exec -n voice-rag deploy/backend -- python ingest_samples.py --reindex
+
 echo ""
+echo "Voice RAG Chatbot is ready."
+echo ""
+echo "  App:            http://localhost:30080"
 echo "  Check pods:     kubectl get pods -n voice-rag"
 echo "  Backend health: kubectl port-forward -n voice-rag svc/backend 8000:8000"
 echo "                  then open http://localhost:8000/health"
 echo ""
+echo "  Login: employee@demo.com / employee123"
 echo "  Ensure Ollama Desktop is running with gpt-oss:120b-cloud."
 echo "  Stop with: ./stop.sh"

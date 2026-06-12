@@ -3,7 +3,7 @@ from .vector_store import search_vector_store
 
 embedder = SentenceTransformer("all-MiniLM-L6-v2")
 
-def perform_hybrid_search(query: str, access_level: int, top_k: int = 40):
+def perform_hybrid_search(query: str, access_level: int, top_k: int = 15):
     # For PoC, we will just use the dense search via ChromaDB
     # Full hybrid with BM25 can be implemented by indexing chunks with rank_bm25
     query_embedding = embedder.encode(query).tolist()

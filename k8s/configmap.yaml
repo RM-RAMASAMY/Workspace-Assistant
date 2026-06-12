@@ -9,5 +9,7 @@ data:
   # Minikube: change to http://host.minikube.internal:11434
   OLLAMA_BASE_URL: "http://host.docker.internal:11434"
   OLLAMA_MODEL: "gpt-oss:120b-cloud"
-  DATABASE_URL: "sqlite+aiosqlite:///./sql_app.db"
-  CHROMA_PERSIST_DIRECTORY: "./chroma_db"
+  # Use absolute PVC paths so both the server and one-off kubectl exec scripts
+  # (seed_data, ingest_samples) read/write the same persistent data store.
+  DATABASE_URL: "sqlite+aiosqlite:////app/data/sql_app.db"
+  CHROMA_PERSIST_DIRECTORY: "/app/data/chroma_db"

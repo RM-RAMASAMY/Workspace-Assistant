@@ -1,0 +1,59 @@
+# Data Science Ai
+
+**Official source:** https://www.hanuinnotech.com/
+
+This document was compiled from Hanumayamma Innovations and Technologies Inc. (Hannu InnoTech) public website content for internal knowledge retrieval.
+
+# Data Science Labs and AI
+
+**Source:** https://www.hanuinnotech.com/datascienceAILabs.html
+
+Hannu InnoTech is the internal brand of Hanumayamma Innovations and Technologies Inc., a Delaware corporation founded in 2010. The company builds AI, IoT sensors, and analytics for agriculture, dairy, specialty crops, food security, and climate resilience.
+
+- Established Excellence Fast Company’s 2023 Innovation by Design Awards! Know More...
+## Established Excellence
+Fast Company’s 2023 Innovation by Design Awards!
+- Global Recognition: World Bank–Backed AI Agriculture Casebook . Developed in collaboration with the Government of Maharashtra’s AI and Agritech Innovation Center (AIAIC) and supported by the World Bank and Wadhwani AI ... Know More...
+## Global Recognition: World Bank–Backed AI Agriculture Casebook .
+Developed in collaboration with the Government of Maharashtra’s AI and Agritech Innovation Center (AIAIC) and supported by the World Bank and Wadhwani AI ...
+- Data Science and Artificial Intelligence Labs Advanced Analytics solving the needs of small farmers... Know More...
+## Data Science and Artificial Intelligence Labs
+Advanced Analytics solving the needs of small farmers...
+- Predictive Models Small farmer actionable insights derived from macroeconomic trends and Gross Domestic Product (GDP) Changes Know More...
+## Predictive Models
+Small farmer actionable insights derived from macroeconomic trends and Gross Domestic Product (GDP) Changes
+- Customized ML Models and Heuristics Exclusive recommendations based on Geos and Farmer needs… Know More...
+## Customized ML Models and Heuristics
+Exclusive recommendations based on Geos and Farmer needs…
+- Wearable AI for Animal Husbandry and Dairy Cattle In 2017, Hanumayamma began landmark engagements with Amul, NDDB, and Parliament to spark India’s digital dairy revolution... Case Study
+## Wearable AI for Animal Husbandry and Dairy Cattle
+In 2017, Hanumayamma began landmark engagements with Amul, NDDB, and Parliament to spark India’s digital dairy revolution...
+- National Agricultural Banks: Investment Protection Powered by AI Enhancing Agriculture & Dairy Loan Protection with Hanumayamma Cow Necklace, Biomedical Sensors, and AI Platform Case Study
+## National Agricultural Banks: Investment Protection Powered by AI
+Enhancing Agriculture & Dairy Loan Protection with Hanumayamma Cow Necklace, Biomedical Sensors, and AI Platform
+## Data Science – the defender of the last resort
+Small farmers around the world are facing challenges like never before - something that is evident in the rising poverty rates in rural areas and the fast decrease of small farmers in the US and elsewhere. The statistics show the situation: In Europe, agriculture provides the most jobs with about 10.5 million agricultural holdings in 2016. However, farm numbers have been dropping drastically for a long time. Most of the EU's farms are small; two thirds were under 5 hectares in size in 2016. These small farms help prevent rural poverty by providing extra income and food. Like Europe, agriculture and animal husbandry are the main sources of income for the people in Asia. Agriculture is important for all countries of Asia and the Pacific, with more than 2.2 billion people depending on agriculture for their livelihood. Small and marginal farmers own 86% of the agricultural landholding in India. Farming is the main economic activity in Africa by a large margin. It employs about 66% of the people who work in the continent and accounts for 30 to 60 percent of the national income and around 30 percent of the export earnings for each country. Even though Africa has over 60% of the world’s land that can grow crops, the continent’s contribution to global agricultural output is still small. The Latin America and Caribbean (LAC) region has agriculture as its main source of employment. In 2018, 14.1% of the total workforce in the LAC region worked in agriculture. Countries. The LAC region has high levels of poverty and extreme poverty in rural areas (48.6% and 22.5%, respectively) since 2017 and a growing difference between rural and urban poor with many people suffering from hunger in the region (39.3 million). Artificial Intelligence has a significant impact on enhancing the efficiency of small farmers around the world and raising their quality of life. Through Data Science and Machine Learning Techniques, a slight improvement in efficiency increases the financial welfare of small farmers and reduces the growing gap & rural poverty. Moreover, Artificial Intelligence is the last line of defense in safeguarding small farmers from the attack on their existence - rising "industrialization" of agriculture by big corporations and the use of automation at the cost of economic stability & sustainability of small farmers. To put it simply, the competitive market landscape is no longer fair and equal. In the "David and Goliath” fight, the small farmers need the abilities of advanced machine learning and data science that can help them to cope with the “industrialization”.
+## Global Recognition
+Developed in collaboration with the Government of Maharashtra’s AI and Agritech Innovation Center (AIAIC) and supported by the World Bank and Wadhwani AI, this Casebook presents 26 deployed and scalable AI solutions focused on improving crop planning, strengthening farm operations, expanding market access, and enhancing financial resilience for farmers, reflecting AI’s growing role in agricultural productivity and rural transformation. Case Study 12 features Hanumayamma Innovations and Technologies, Inc. and highlights the deployment of AI-powered Cow Necklace Sensors in the Kashmir Valley, demonstrating how wearable IoT and machine learning enable continuous, non-invasive livestock monitoring, early detection of health and climate-induced stress, and proactive interventions that improve animal welfare, productivity, and resilience in extreme environmental conditions, with strong potential for scalable global adoption.
+## Case Studies
+List of successful case studies from our customers: Food Industries Coca-Cola partnered with Hanumayamma to deploy an AI-driven Mango Yield, Harvest Calendar, and Supply Chain Platform that forecasts yield, predicts prices, maps global harvests, and optimizes sourcing—reducing costs, stabilizing procurement, and preventing disruptions. Small Farmers & Producers Hanumayamma Innovations empowers farmers with AI + IoT sensors that deliver real-time cattle health insights, boost productivity, reduce mortality, and strengthen rural decision-making. By building trust, transparency, and digital access, we help create resilient, climate-smart, future-ready dairy systems. Banks & Insurance Companies Hanumayamma’s AI-powered Cow Necklace Sensors help development banks reduce dairy-loan risks by monitoring cattle health, preventing losses, improving insurance accuracy, boosting productivity, and enabling real-time digital loan oversight.
+State & Local governments Across continents, cattle shelters and sanctuaries support animal welfare but face late illness detection, climate stress, high costs, and rising climate-reporting demands. Hanumayamma Cow Necklace Sensors deliver 24×7 AI monitoring, early illness alerts, climate insights, and COP21-aligned methane tracking for global cattle care. Research Laboratories Across the Himalayan Kashmir Valley, AI-powered Cow Necklace Sensors enable continuous cattle health monitoring, climate-stress detection, productivity gains, methane reduction, and sustainable farmer livelihoods. Producers & Food Processors AI-driven specialty crop intelligence for processing tomatoes integrates climate analytics, price forecasting, and risk modeling to optimize farm decisions, stabilize processor procurement, reduce food waste, and strengthen global food security across volatile agricultural markets.
+## Food Security
+The World is facing a crucial situation. In 2020, almost one third of people did not have enough food - hunger affected between 720 and 811 million people. Compared with 2019, 46 million more people in Africa, nearly 57 million more in Asia, and about 14 million more in Latin America and the Caribbean suffered from hunger. Based on projections of global population growth, current shortages of food around the world, and increased demand for greener fuel & biodiesel, food security will continue to be an important economic development issue for the next several decades. As the conflict between food and fuel becomes more severe, the day will come when more agricultural products will be used for energy than food. Adding to the dilemma, the COVID-19 pandemic has altered the earth in terms of supply chain, resource availability, and human labor and has revealed our weaknesses in food security to a greater degree. In summary, humanity is facing a crucial situation and what this unprecedented change in our lives has demanded from us -- the practitioners of agriculture and technologists of the world -- is to innovate and become more productive to tackle the multi-faceted food security challenges.
+Hanumayamma Data Science platform, Agriculture Analytics and Dairy Analytics, gathers data from global economic, agricultural, climate, and weather model datasets. It sources data from statistical handbooks of 98 national governments data. The data science platform continuously uses time series, regression, cluster, and prediction models to evaluate the food security!
+## ENVIRONMENTAL, SOCIAL, AND GOVERNANCE (ESG) Platform
+Hanumayamma Environmental, Social, and Governance (ESG) Platform is a solution for dairy and agricultural farms, cooperatives, commercial corporations, manufacturing firms, multi-national corporations, and food processing units of different sizes to achieve their environmental sustainability goals and improve the world. Hanumayamma Sustainability Platform collects data from different sensors that are deployed in the field, such as Cow Necklace, a Class 10 veterinary diagnostic sensor, and creates a shared data model. It then transforms various data to give insights on Water, Methane, Milk, and Green Analytics and helps farmers to use them. This is how platform process data: first, it uses Hanumayamma Cloud for Sustainability data model, which enhances field sensor data, weather & satellite, and econometric data. Second, the data is analyzed with Hanumayamma’ s data science algorithms to produce ESG calculations and tracking for each tenant. Lastly, it produces customized data insights for compliance and governance reporting purposes. Actionable steps and progress towards objectives are the outcomes that help us & world achieve ESG goals.
+### Brochure
+
+# Dairy Analytics
+
+**Source:** https://www.hanuinnotech.com/MuraiDataAnalyticsWhitePaper.html
+
+#### Registration Form
+##### "*" Mandatory Required Fields
+
+# Case Study:Machine Learning Model - The role of Credit to Agriculture in improving the Gross Domestic Product (GDP)
+
+**Source:** https://www.hanuinnotech.com/request_bookcopy_democratizationofai.html
+
+##### "*" Mandatory Required Fields

@@ -29,9 +29,13 @@ spec:
             - -c
             - |
               mkdir -p /app/data/chroma_db /app/data/uploads
-              ln -sfn /app/data/sql_app.db /app/sql_app.db
+              # The image ships /app/chroma_db and /app/uploads as real directories.
+              # ln -sfn cannot replace a directory, so remove them first or Chroma
+              # writes to ephemeral storage while the PVC stays empty (RAG returns nothing).
+              rm -rf /app/chroma_db /app/uploads
               ln -sfn /app/data/chroma_db /app/chroma_db
               ln -sfn /app/data/uploads /app/uploads
+              ln -sfn /app/data/sql_app.db /app/sql_app.db
               exec python -m uvicorn main:app --host 0.0.0.0 --port 8000
           volumeMounts:
             - name: backend-data

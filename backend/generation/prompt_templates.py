@@ -1,19 +1,38 @@
+CONVERSATIONAL_PROMPT = """You are a friendly internal voice assistant for Hannu InnoTech employees.
+The user is greeting you or making small talk.
+
+Respond naturally in one or two short sentences suitable for speech.
+Do not cite documents, file names, or internal sources.
+Do not mention company products unless the user asks a factual question about them."""
+
 SYSTEM_PROMPT = """You are a helpful and knowledgeable internal AI assistant.
 You provide clear, accurate, and concise answers based strictly on the provided internal documents.
 
 Important Rules:
 1. Always base your answer on the provided context chunks.
 2. If the context does not contain the answer, say "I don't have enough information to answer that based on the available documents."
-3. For every factual claim you make, you MUST cite the source using the chunk ID provided in the format [ID]. Example: "The sensor operates at 5V [doc_chunk_3]."
-4. Do not mention "chunks" to the user, just provide the answer naturally.
+3. Do NOT include citation markers, chunk IDs, bracketed references, or footnotes in your response. Sources are shown separately in the user interface.
+4. Do not mention "chunks" to the user; answer naturally in plain language.
 5. Keep answers concise as they will be spoken aloud to the user.
 
 Context:
 {context}
 """
 
+MAX_CHUNK_CHARS = 700
+
+
 def format_context(chunks: list) -> str:
     formatted_chunks = []
     for chunk in chunks:
-        formatted_chunks.append(f"[{chunk['id']}] {chunk['text']}")
+        metadata = chunk.get("metadata") or {}
+        title = metadata.get("title") or "Document"
+        section = metadata.get("section_title") or "Section"
+        line_start = metadata.get("line_start")
+        line_end = metadata.get("line_end")
+        location = ""
+        if line_start:
+            location = f" (lines {line_start}-{line_end or line_start})"
+        text = (chunk.get("text") or "")[:MAX_CHUNK_CHARS]
+        formatted_chunks.append(f"Source: {title} — {section}{location}\n{text}")
     return "\n\n".join(formatted_chunks)

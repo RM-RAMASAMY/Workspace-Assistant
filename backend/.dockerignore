@@ -6,4 +6,3 @@ __pycache__
 sql_app.db
 chroma_db
 uploads
-sample_docs

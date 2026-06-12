@@ -32,3 +32,21 @@ class ChunkOut(BaseModel):
 
 class DocumentWithChunks(DocumentOut):
     chunks: List[ChunkOut] = []
+
+
+class DocumentContentOut(BaseModel):
+    id: str
+    title: str
+    doc_type: str
+    content: str
+
+
+class CitationOut(BaseModel):
+    id: str
+    document_id: str
+    title: str
+    text: str
+    section_title: Optional[str] = None
+    chunk_index: Optional[int] = None
+    line_start: Optional[int] = None
+    line_end: Optional[int] = None
