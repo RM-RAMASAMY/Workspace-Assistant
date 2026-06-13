@@ -1,0 +1,29 @@
+flowchart TD
+    Q[User transcript] --> QP[query_processor.process_query]
+
+    QP --> Alias[Company alias expansion<br/>Hannu InnoTech Hanumayamma]
+    Alias --> Topic[Topic regex expansion<br/>sensors PTO dairy specs]
+    Topic --> History[search_query += last 2 user<br/>+ last assistant 300 chars]
+    History --> Intent{is_conversational}
+
+    Intent -->|yes| Conv[Skip retrieval<br/>CONVERSATIONAL_PROMPT]
+    Intent -->|no| EmbedQ[Encode query<br/>all-MiniLM-L6-v2]
+
+    EmbedQ --> Dense[ChromaDB query<br/>n_results 12<br/>filter access_level lte userLevel]
+
+    Dense --> Note1[Note: voice WS hardcodes userLevel=2 INTERNAL]
+
+    Dense --> Rerank[CrossEncoder predict<br/>ms-marco-MiniLM top 8<br/>truncate chunk text 512 chars]
+
+    Rerank --> Context[Take top 3 for LLM prompt<br/>truncate each to 450 chars]
+
+    Context --> LLM[Ollama generate_stream<br/>num_predict 1024 temp 0.4]
+
+    Conv --> LLM
+
+    subgraph HybridGap["Not implemented"]
+        BM25[rank_bm25 sparse search]
+        RRF[Reciprocal Rank Fusion]
+        BM25 -.-> RRF
+        RRF -.-> Dense
+    end

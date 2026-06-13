@@ -1,0 +1,21 @@
+flowchart LR
+    subgraph REST["REST endpoints — JWT enforced"]
+        Login[POST /auth/login] --> JWT[JWT Bearer token<br/>sub role_id access_level exp 24h]
+        JWT --> Me[GET /auth/me]
+        JWT --> ListDocs[GET /documents<br/>filter doc.access lte user.access]
+        JWT --> Upload[POST /documents/upload<br/>requires can_upload_docs]
+        JWT --> Delete[DELETE /documents/id<br/>requires can_manage_users]
+        JWT --> Dash[GET /admin/observability/dashboard<br/>requires access_level 4]
+    end
+
+    subgraph WS["WebSocket /voice/ws — no JWT"]
+        Voice[Anyone connected] --> Fixed[Hardcoded access_level = 2 INTERNAL]
+        Fixed --> ChromaFilter[ChromaDB retrieval filter]
+    end
+
+    subgraph Roles["Seeded roles"]
+        Admin[admin level 4 upload manage]
+        Manager[manager level 3 upload]
+        Employee[employee level 2 read]
+        Viewer[viewer level 1 public only]
+    end

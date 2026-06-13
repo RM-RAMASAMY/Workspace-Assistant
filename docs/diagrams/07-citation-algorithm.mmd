@@ -1,0 +1,30 @@
+flowchart TD
+    Resp[Full LLM response text] --> Strip[strip_citation_markers<br/>before TTS and display]
+    Resp --> Should{should_attach_citations}
+
+    Should -->|conversational intent| Skip[No citations sent]
+    Should -->|insufficient answer patterns| Skip
+    Should -->|response length lt 10| Skip
+    Should -->|no chunk pool| Skip
+    Should -->|pass| Filter[filter_relevant_chunks]
+
+    Filter --> Sort[Sort top 8 by rerank_score<br/>take top 5]
+    Sort --> Loc{location query}
+    Loc -->|yes| DropCase[Drop case_studies titles]
+    Loc -->|no| Score
+    DropCase --> Score
+
+    Score{Per chunk score}
+    Score -->|rerank_score gte 2.0| Keep[Keep chunk]
+    Score -->|weak score gte -8.0<br/>AND answer term overlap gte 3| Keep
+    Score -->|else| Drop[Drop chunk]
+
+    Keep --> Topic[_prefer_topic_documents]
+    Topic --> Dedupe[_dedupe_documents max 3 titles]
+    Dedupe --> Empty{Any selected?}
+
+    Empty -->|no| Fallback[Fallback dedupe from context_chunks]
+    Empty -->|yes| Payload[build_citation_payload]
+    Fallback --> Payload
+
+    Payload --> WS[WebSocket type citations<br/>id document_id title text<br/>section line_start line_end rerank_score]

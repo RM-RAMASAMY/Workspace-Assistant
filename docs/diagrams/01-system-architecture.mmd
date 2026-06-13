@@ -1,0 +1,64 @@
+flowchart TB
+    subgraph Client["Frontend — React 19 + Vite"]
+        Login["LoginPage<br/>JWT in localStorage"]
+        PTT["PushToTalk<br/>MediaRecorder audio/webm"]
+        Chat["ChatInterface<br/>WebSocket client"]
+        Citations["CitationChip + Modal<br/>DocumentViewer"]
+        Sidebar["Sidebar<br/>Chat history + doc list"]
+    end
+
+    subgraph API["Backend — FastAPI :8000"]
+        AuthR["/auth/* REST"]
+        DocsR["/documents/* REST"]
+        VoiceWS["/voice/ws WebSocket"]
+        ObsR["/admin/observability/*"]
+    end
+
+    subgraph Pipeline["Voice RAG Pipeline"]
+        STT["STT Client<br/>Deepgram nova-2"]
+        QP["Query Processor<br/>intent + expansion"]
+        Search["Dense Search<br/>ChromaDB filter"]
+        Rerank["Cross-Encoder Rerank<br/>ms-marco-MiniLM"]
+        LLM["Ollama Client<br/>gpt-oss:120b-cloud"]
+        Stream["Sentence Streamer"]
+        TTS["TTS Client<br/>ElevenLabs flash v2.5"]
+        Ingest["Ingestion<br/>PyMuPDF / docx / md"]
+        Embed["Embedder<br/>all-MiniLM-L6-v2"]
+    end
+
+    subgraph Data["Local Data Stores"]
+        SQLite[("SQLite<br/>users, roles, documents")]
+        Chroma[("ChromaDB<br/>documents_v1 collection")]
+        Uploads[("uploads/<br/>raw files")]
+    end
+
+    subgraph External["External Services"]
+        DG["Deepgram API"]
+        EL["ElevenLabs API"]
+        OL["Ollama on host :11434"]
+    end
+
+    Login --> AuthR
+    Sidebar --> DocsR
+    Citations --> DocsR
+    PTT --> Chat
+    Chat <-->|JSON + binary| VoiceWS
+
+    VoiceWS --> STT --> QP --> Search --> Rerank --> LLM --> Stream
+    Stream --> TTS
+    Stream --> Chat
+    TTS --> Chat
+
+    STT --> DG
+    TTS --> EL
+    LLM --> OL
+
+    Search --> Chroma
+    Rerank --> Chroma
+    Embed --> Chroma
+    Ingest --> Embed
+    DocsR --> Ingest
+    AuthR --> SQLite
+    DocsR --> SQLite
+    Ingest --> SQLite
+    DocsR --> Uploads

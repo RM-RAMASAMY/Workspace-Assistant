@@ -1,0 +1,21 @@
+flowchart TB
+    Browser[Browser employee] --> NodePort[NodePort :30080<br/>or Ingress voice-rag.local]
+
+    NodePort --> FE[frontend pod<br/>nginx :80]
+    FE -->|proxy auth documents voice admin| BE[backend pod<br/>uvicorn :8000]
+
+    BE --> PVC[(PVC backend-data 5Gi<br/>SQLite ChromaDB uploads)]
+    BE -->|host.docker.internal:11434| Ollama[Ollama Desktop on host]
+    BE --> Deepgram[Deepgram API]
+    BE --> ElevenLabs[ElevenLabs API]
+
+    subgraph K8sNamespace[voice-rag namespace]
+        FE
+        BE
+        PVC
+        CM[ConfigMap voice-rag-config]
+        SEC[Secret voice-rag-secrets]
+    end
+
+    CM --> BE
+    SEC --> BE

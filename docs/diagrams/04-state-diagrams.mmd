@@ -1,0 +1,42 @@
+stateDiagram-v2
+    direction LR
+
+    state "PushToTalk UI" as PTT {
+        [*] --> Idle
+        Idle --> Recording : pointerdown and not processing
+        Recording --> Idle : pointerup / pointerleave / pointercancel
+        Recording --> Processing : onstop sends Blob
+        Processing --> Idle : WS status Done or error
+        note right of Processing
+            isProcessing disables mic
+            60s timeout on client
+        end note
+    }
+
+    state "Voice WebSocket Turn" as Turn {
+        [*] --> AwaitMetadata
+        AwaitMetadata --> AwaitAudio : optional JSON history
+        AwaitMetadata --> Transcribing : audio bytes only
+        AwaitAudio --> Transcribing : binary frame
+        Transcribing --> Querying : transcript ok
+        Transcribing --> Error : empty transcript
+        Querying --> Retrieving : intent factual
+        Querying --> Generating : intent conversational
+        Retrieving --> Generating : top 8 reranked
+        Generating --> Streaming : Ollama tokens
+        Streaming --> Citations : optional payload
+        Citations --> Done
+        Streaming --> Done : no citations
+        Error --> Done
+        Done --> AwaitMetadata : next turn same socket
+    }
+
+    state "Document Ingestion" as Ingest {
+        [*] --> PENDING
+        PENDING --> INDEXED : ingest_document success
+        PENDING --> FAILED : parse or embed error
+        note right of PENDING
+            PROCESSING status exists
+            in enum but is never set
+        end note
+    }

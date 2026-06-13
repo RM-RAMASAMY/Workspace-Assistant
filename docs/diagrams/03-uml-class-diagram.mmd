@@ -1,0 +1,100 @@
+classDiagram
+    direction TB
+
+    class AccessLevel {
+        <<IntEnum>>
+        PUBLIC = 1
+        INTERNAL = 2
+        CONFIDENTIAL = 3
+        RESTRICTED = 4
+    }
+
+    class DocumentStatus {
+        <<Enum>>
+        PENDING
+        PROCESSING
+        INDEXED
+        FAILED
+    }
+
+    class Role {
+        +Integer id PK
+        +String name
+        +Integer max_access_level
+        +Boolean can_upload_docs
+        +Boolean can_manage_users
+    }
+
+    class User {
+        +Integer id PK
+        +String email
+        +String name
+        +String hashed_password
+        +String auth_provider
+        +Integer access_level
+        +Integer role_id FK
+        +DateTime created_at
+    }
+
+    class Document {
+        +String id PK
+        +String title
+        +String file_path
+        +String doc_type
+        +Integer access_level
+        +Integer uploaded_by FK
+        +DateTime uploaded_at
+        +String status
+    }
+
+    class Chunk {
+        +String id PK
+        +String document_id FK
+        +Integer page_number
+        +String section_title
+        +Integer chunk_index
+        note: text stored in ChromaDB only
+    }
+
+    class QueryLog {
+        +String id PK
+        +Integer user_id FK
+        +String session_id
+        +String query
+        +String response
+        +Integer latency_total_ms
+        +Integer latency_stt_ms
+        +Integer latency_retrieval_ms
+        +Integer latency_llm_ms
+        +Integer latency_tts_ms
+        +Integer tokens_used
+        +DateTime timestamp
+    }
+
+    class EvalScore {
+        +Integer id PK
+        +String query_log_id FK
+        +Float faithfulness
+        +Float relevance
+        +Float citation_accuracy
+    }
+
+    class ChromaChunk {
+        <<vector store>>
+        +String id
+        +Float[] embedding
+        +String text
+        +metadata document_id
+        +metadata title
+        +metadata access_level
+        +metadata section_title
+        +metadata line_start
+        +metadata line_end
+    }
+
+    Role "1" --> "*" User : has
+    User "1" --> "*" Document : uploads
+    Document "1" --> "*" Chunk : contains
+    Chunk ..> ChromaChunk : mirrored in
+    User "1" --> "*" QueryLog : generates
+    QueryLog "1" --> "0..1" EvalScore : scored by

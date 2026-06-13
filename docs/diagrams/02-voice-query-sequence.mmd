@@ -1,0 +1,57 @@
+sequenceDiagram
+    actor User
+    participant PTT as PushToTalk
+    participant Chat as ChatInterface
+    participant WS as voice/router.py
+    participant STT as Deepgram STT
+    participant QP as query_processor
+    participant Chroma as ChromaDB
+    participant Rerank as reranker
+    participant LLM as Ollama
+    participant TTS as ElevenLabs
+
+    User->>PTT: pointerdown hold
+    PTT->>PTT: MediaRecorder start audio/webm
+    User->>PTT: pointerup release
+    PTT->>Chat: audio Blob
+
+    Chat->>WS: JSON turn + history max 12 msgs
+    Chat->>WS: binary audio frame
+
+    WS->>Chat: status Transcribing
+    WS->>STT: POST audio/webm
+    STT-->>WS: transcript
+
+    alt empty transcript
+        WS->>Chat: error No speech detected
+    else has transcript
+        WS->>Chat: transcription text
+        WS->>QP: process_query transcript history
+
+        alt intent conversational
+            WS->>Chat: status Thinking
+            WS->>LLM: stream CONVERSATIONAL_PROMPT
+        else intent factual
+            WS->>Chat: status Retrieving context
+            WS->>Chroma: dense search top 12 access_level lte 2
+            Chroma-->>WS: candidates
+            WS->>Rerank: rerank top 8
+            Rerank-->>WS: ranked chunks
+            WS->>Chat: status Thinking
+            WS->>LLM: stream SYSTEM_PROMPT 3 context chunks
+        end
+
+        loop each sentence from streamer
+            LLM-->>WS: token stream
+            WS->>Chat: text sentence
+            WS->>TTS: synthesize sentence
+            TTS-->>WS: mp3 bytes
+            WS->>Chat: audio base64
+        end
+
+        opt factual and citations pass grounding
+            WS->>Chat: citations array
+        end
+
+        WS->>Chat: status Done
+    end

@@ -1,0 +1,26 @@
+flowchart TD
+    Start([Upload or ingest_samples.py]) --> Parse{File extension}
+
+    Parse -->|.pdf| PDF[PyMuPDF extract_text]
+    Parse -->|.docx| DOCX[python-docx paragraphs]
+    Parse -->|.txt .md| TXT[UTF-8 read]
+    Parse -->|other| Fail[status FAILED]
+
+    PDF --> Chunk
+    DOCX --> Chunk
+    TXT --> Chunk
+
+    Chunk[build_chunks_with_metadata<br/>size 1000 overlap 100<br/>section + line metadata]
+    Chunk --> Embed[SentenceTransformer<br/>all-MiniLM-L6-v2]
+    Embed --> WriteChroma[ChromaDB documents_v1<br/>cosine HNSW]
+    Embed --> WriteSQL[SQLite chunks table<br/>id document_id section]
+    WriteChroma --> Indexed[Document status INDEXED]
+    WriteSQL --> Indexed
+
+    subgraph AccessLevels["Sample doc access levels"]
+        A1[employee_handbook PUBLIC 1]
+        A2[hanuinnotech_* PUBLIC 1]
+        A3[product_spec_v3 INTERNAL 2]
+        A4[board_meeting_june RESTRICTED 4]
+        A5[other samples INTERNAL 2]
+    end
