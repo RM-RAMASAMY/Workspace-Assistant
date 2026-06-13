@@ -3,8 +3,15 @@ import httpx
 from config import settings
 from .stt_corrections import normalize_transcript
 
-# Clean STT URL — keyword boosting on every utterance hurts general accuracy.
 _LISTEN_URL = "https://api.deepgram.com/v1/listen?model=nova-2&smart_format=true&punctuate=true"
+_http: httpx.AsyncClient | None = None
+
+
+def _get_client() -> httpx.AsyncClient:
+    global _http
+    if _http is None or _http.is_closed:
+        _http = httpx.AsyncClient(timeout=30.0)
+    return _http
 
 
 async def transcribe_audio(audio_data: bytes) -> str:
@@ -22,15 +29,14 @@ async def transcribe_audio(audio_data: bytes) -> str:
         )
         return ""
 
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            _LISTEN_URL, headers=headers, content=audio_data, timeout=30
+    response = await _get_client().post(
+        _LISTEN_URL, headers=headers, content=audio_data
+    )
+    if response.status_code != 200:
+        logging.error(f"Deepgram STT {response.status_code}: {response.text}")
+        raise RuntimeError(
+            f"Speech-to-text failed ({response.status_code}): {response.text[:300]}"
         )
-        if response.status_code != 200:
-            logging.error(f"Deepgram STT {response.status_code}: {response.text}")
-            raise RuntimeError(
-                f"Speech-to-text failed ({response.status_code}): {response.text[:300]}"
-            )
-        data = response.json()
-        transcript = data["results"]["channels"][0]["alternatives"][0]["transcript"]
-        return normalize_transcript(transcript)
+    data = response.json()
+    transcript = data["results"]["channels"][0]["alternatives"][0]["transcript"]
+    return normalize_transcript(transcript)

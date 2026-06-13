@@ -64,14 +64,16 @@ export default function MarkdownContent({ children, inline = false, className = 
     return null;
   }
 
+  const Wrapper = inline ? 'span' : 'div';
+
   return (
-    <div className={`markdown-content ${className}`}>
+    <Wrapper className={`markdown-content ${className}`.trim()}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={inline ? inlineComponents : blockComponents}
       >
         {text}
       </ReactMarkdown>
-    </div>
+    </Wrapper>
   );
 }

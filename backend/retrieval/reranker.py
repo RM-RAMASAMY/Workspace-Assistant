@@ -7,13 +7,12 @@ def rerank_results(query: str, candidates: list, top_k: int = 3):
     if not candidates:
         return []
 
-    # Score on a short excerpt — full chunks are passed through after ranking.
-    pairs = [[query, doc["text"][:512]] for doc in candidates]
+    ranked = [dict(doc) for doc in candidates]
+    pairs = [[query, doc["text"][:512]] for doc in ranked]
     scores = reranker.predict(pairs)
-    
+
     for i, score in enumerate(scores):
-        candidates[i]["rerank_score"] = float(score)
-        
-    # Sort descending by rerank score
-    candidates.sort(key=lambda x: x["rerank_score"], reverse=True)
-    return candidates[:top_k]
+        ranked[i]["rerank_score"] = float(score)
+
+    ranked.sort(key=lambda x: x["rerank_score"], reverse=True)
+    return ranked[:top_k]

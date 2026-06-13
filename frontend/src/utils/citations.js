@@ -1,24 +1,81 @@
 const CITATION_MARKER_RE = /[\[【]\s*[a-f0-9-]{36}\s*[\]】]|\[\d+\]/gi;
 
+/** Remove citation markers; preserve newlines for markdown rendering. */
 export function stripCitationMarkers(text = '') {
-  return text.replace(CITATION_MARKER_RE, '').replace(/\s{2,}/g, ' ').trim();
+  return (text || '')
+    .replace(CITATION_MARKER_RE, '')
+    .replace(/[^\S\n]{2,}/g, ' ')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+/** Normalize streamed LLM text so common list patterns render as markdown lists. */
+export function prepareAssistantMarkdown(text = '') {
+  let cleaned = stripCitationMarkers(text);
+  cleaned = cleaned.replace(/:\s+-\s+/g, ':\n\n- ');
+  cleaned = cleaned.replace(/([.!?])\s+-\s+\*\*/g, '$1\n\n- **');
+  cleaned = cleaned.replace(/([.!?])\s+-\s+/g, '$1\n\n- ');
+  cleaned = cleaned.replace(/\n-\s+/g, '\n- ');
+  return cleaned;
+}
+
+export function formatDocumentTitle(title) {
+  if (!title) {
+    return 'Source';
+  }
+  let name = title.replace(/\.md$/i, '');
+  if (name.startsWith('hanuinnotech_')) {
+    name = name.slice('hanuinnotech_'.length);
+  }
+  return name
+    .split('_')
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+export function formatCitationLocation(citation) {
+  const lineStart = citation.line_start ?? citation.lineStart;
+  const lineEnd = citation.line_end ?? citation.lineEnd;
+  if (lineStart > 0) {
+    if (lineEnd > lineStart) {
+      return `Lines ${lineStart}–${lineEnd}`;
+    }
+    return `Line ${lineStart}`;
+  }
+  return null;
+}
+
+export function formatCitationExcerpt(citation, maxLen = 72) {
+  const text = (citation?.text || '').replace(/\s+/g, ' ').trim();
+  if (!text) {
+    return null;
+  }
+  if (text.length <= maxLen) {
+    return text;
+  }
+  return `${text.slice(0, maxLen).trim()}…`;
 }
 
 export function formatCitationLabel(citation) {
-  const parts = [citation.title || 'Source'];
+  const parts = [formatDocumentTitle(citation.title)];
   if (citation.section_title) {
     parts.push(citation.section_title);
   }
-  const lineStart = citation.line_start ?? citation.lineStart;
-  const lineEnd = citation.line_end ?? citation.lineEnd;
-  if (lineStart && lineEnd) {
-    parts.push(`Lines ${lineStart}-${lineEnd}`);
-  } else if (lineStart) {
-    parts.push(`Line ${lineStart}`);
-  } else if (citation.chunk_index != null) {
-    parts.push(`Passage ${citation.chunk_index + 1}`);
+  const location = formatCitationLocation(citation);
+  if (location) {
+    parts.push(location);
   }
   return parts.join(' · ');
+}
+
+export function formatCitationParts(citation) {
+  const docTitle = formatDocumentTitle(citation.title);
+  const section = citation.section_title || null;
+  const location = formatCitationLocation(citation);
+  const excerpt = !location ? formatCitationExcerpt(citation) : null;
+  return { docTitle, section, location, excerpt };
 }
 
 export function dedupeCitations(citations = []) {

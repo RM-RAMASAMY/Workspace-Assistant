@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ExternalLink } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { apiCall } from '../utils/api';
-import { formatCitationLabel, resolveHighlightRange } from '../utils/citations';
+import { formatCitationParts, resolveHighlightRange } from '../utils/citations';
 import MarkdownContent from './MarkdownContent';
 
 export default function CitationModal({ citation, onClose, onOpenDocument }) {
@@ -80,6 +80,9 @@ export default function CitationModal({ citation, onClose, onOpenDocument }) {
     handleClose();
   };
 
+  const { docTitle, section, location, excerpt } = formatCitationParts(detail);
+  const meta = [section, location || excerpt].filter(Boolean).join(' · ');
+
   return (
     <dialog
       ref={dialogRef}
@@ -90,8 +93,11 @@ export default function CitationModal({ citation, onClose, onOpenDocument }) {
         <div>
           <p className="text-xs uppercase tracking-wide text-slate-400">Source excerpt</p>
           <h3 id="citation-title" className="mt-1 text-lg font-medium text-white">
-            {formatCitationLabel(detail)}
+            {docTitle}
           </h3>
+          {meta && (
+            <p className="mt-1 text-sm text-slate-400">{meta}</p>
+          )}
         </div>
         <button
           ref={closeButtonRef}

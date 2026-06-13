@@ -3,13 +3,27 @@ import PushToTalk from './PushToTalk';
 import { useChat } from '../context/ChatContext';
 import {
   stripCitationMarkers,
-  formatCitationLabel,
+  prepareAssistantMarkdown,
   dedupeCitations,
   findLastAssistantIndex,
 } from '../utils/citations';
 import MarkdownContent from './MarkdownContent';
+import CitationChip from './CitationChip';
+import ThinkingIndicator from './ThinkingIndicator';
+
+const EMPTY_ASSISTANT_FALLBACK =
+  "I couldn't generate a response for that question. Please try rephrasing or ask again.";
 
 const ChatMessage = memo(function ChatMessage({ msg, onOpenCitation }) {
+  const assistantText = msg.role === 'assistant'
+    ? prepareAssistantMarkdown(msg.content)
+    : '';
+  const isThinking = msg.role === 'assistant' && msg.thinking && !assistantText;
+
+  if (msg.role === 'assistant' && !assistantText && !isThinking && !(msg.citations?.length)) {
+    return null;
+  }
+
   return (
     <div className={`flex ${msg.role === 'user' ? 'justify-end' : msg.role === 'system' ? 'justify-center' : 'justify-start'}`}>
       <div className={`max-w-2xl rounded-2xl px-6 py-4 ${
@@ -17,25 +31,26 @@ const ChatMessage = memo(function ChatMessage({ msg, onOpenCitation }) {
         msg.role === 'system' ? 'bg-amber-900/40 text-amber-200 border border-amber-700/40 text-sm' :
         'glass-panel text-slate-100'
       }`}>
-        {msg.role === 'assistant' ? (
-          <MarkdownContent>{stripCitationMarkers(msg.content)}</MarkdownContent>
+        {isThinking ? (
+          <ThinkingIndicator />
+        ) : msg.role === 'assistant' ? (
+          <MarkdownContent>{assistantText}</MarkdownContent>
         ) : (
           <p className="leading-relaxed whitespace-pre-wrap">{stripCitationMarkers(msg.content)}</p>
         )}
 
         {msg.citations && msg.citations.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-slate-700/50 flex flex-wrap gap-2">
-            {dedupeCitations(msg.citations).map((cit) => (
-              <button
-                key={cit.id}
-                type="button"
-                onClick={() => onOpenCitation?.(cit)}
-                className="text-left text-xs bg-slate-800/80 px-2 py-1.5 rounded text-blue-300 border border-slate-700 hover:border-blue-500/50 hover:bg-slate-800 transition-colors"
-                title="View source excerpt"
-              >
-                {formatCitationLabel(cit)}
-              </button>
-            ))}
+          <div className="mt-4 border-t border-slate-700/50 pt-4">
+            <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500">Sources</p>
+            <div className="flex flex-col gap-2">
+              {dedupeCitations(msg.citations).map((cit) => (
+                <CitationChip
+                  key={cit.id}
+                  citation={cit}
+                  onClick={() => onOpenCitation?.(cit)}
+                />
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -58,15 +73,31 @@ export default function ChatInterface({ onOpenCitation, isVisible }) {
   const updateMessagesRef = useRef(updateActiveMessages);
   const isProcessingRef = useRef(false);
   const textFlushRafRef = useRef(null);
+  const activeAssistantTurnRef = useRef(false);
+  const messagesRef = useRef(messages);
 
   updateMessagesRef.current = updateActiveMessages;
+  messagesRef.current = messages;
+
+  const buildHistoryPayload = useCallback(() => (
+    messagesRef.current
+      .filter((msg) => (msg.role === 'user' || msg.role === 'assistant') && msg.content?.trim())
+      .slice(-12)
+      .map((msg) => ({
+        role: msg.role,
+        content: stripCitationMarkers(msg.content).slice(0, 1000),
+      }))
+  ), []);
 
   const flushStreamingText = useCallback((sessionId) => {
+    if (!activeAssistantTurnRef.current) {
+      return;
+    }
     if (textFlushRafRef.current) {
       cancelAnimationFrame(textFlushRafRef.current);
       textFlushRafRef.current = null;
     }
-    const content = stripCitationMarkers(currentTextRef.current);
+    const content = prepareAssistantMarkdown(currentTextRef.current);
     updateMessagesRef.current((prev) => {
       if (sessionIdRef.current !== sessionId) {
         return prev;
@@ -74,7 +105,7 @@ export default function ChatInterface({ onOpenCitation, isVisible }) {
       const newMsgs = [...prev];
       const idx = findLastAssistantIndex(newMsgs);
       if (idx >= 0) {
-        newMsgs[idx] = { ...newMsgs[idx], content };
+        newMsgs[idx] = { ...newMsgs[idx], content, thinking: false };
       }
       return newMsgs;
     });
@@ -93,6 +124,7 @@ export default function ChatInterface({ onOpenCitation, isVisible }) {
   useEffect(() => {
     sessionIdRef.current = activeSessionId;
     currentTextRef.current = '';
+    activeAssistantTurnRef.current = false;
     setIsProcessing(false);
     isProcessingRef.current = false;
   }, [activeSessionId]);
@@ -189,19 +221,50 @@ export default function ChatInterface({ onOpenCitation, isVisible }) {
 
         if (msg.type === 'status') {
           if (msg.data === 'Done') {
-            flushStreamingText(sessionId);
+            if (activeAssistantTurnRef.current) {
+              flushStreamingText(sessionId);
+              patchMessages((prev) => {
+                const newMsgs = [...prev];
+                const idx = findLastAssistantIndex(newMsgs);
+                if (idx >= 0 && !newMsgs[idx].content?.trim()) {
+                  newMsgs[idx] = {
+                    ...newMsgs[idx],
+                    content: EMPTY_ASSISTANT_FALLBACK,
+                    thinking: false,
+                  };
+                }
+                return newMsgs;
+              });
+            }
+            activeAssistantTurnRef.current = false;
             stopProcessing();
             currentTextRef.current = '';
           }
         } else if (msg.type === 'transcription') {
           stopAudioPlayback();
+          activeAssistantTurnRef.current = true;
+          currentTextRef.current = '';
           patchMessages((prev) => [
             ...prev,
             { role: 'user', content: msg.data },
-            { role: 'assistant', content: '', citations: [] },
+            { role: 'assistant', content: '', citations: [], thinking: true },
           ]);
         } else if (msg.type === 'text') {
+          if (isProcessingRef.current) {
+            stopProcessing();
+          }
           currentTextRef.current += `${msg.data} `;
+          updateMessagesRef.current((prev) => {
+            if (sessionIdRef.current !== sessionId) {
+              return prev;
+            }
+            const newMsgs = [...prev];
+            const idx = findLastAssistantIndex(newMsgs);
+            if (idx >= 0) {
+              newMsgs[idx] = { ...newMsgs[idx], thinking: false };
+            }
+            return newMsgs;
+          });
           scheduleStreamingTextFlush(sessionId);
         } else if (msg.type === 'citations') {
           flushStreamingText(sessionId);
@@ -221,7 +284,23 @@ export default function ChatInterface({ onOpenCitation, isVisible }) {
         } else if (msg.type === 'error') {
           console.error('WS Error:', msg.data);
           currentTextRef.current = '';
-          patchMessages((prev) => [...prev, { role: 'system', content: msg.data, citations: [] }]);
+          if (activeAssistantTurnRef.current) {
+            patchMessages((prev) => {
+              const newMsgs = [...prev];
+              const idx = findLastAssistantIndex(newMsgs);
+              if (idx >= 0 && !newMsgs[idx].content?.trim()) {
+                newMsgs[idx] = { ...newMsgs[idx], content: msg.data, thinking: false };
+                return newMsgs;
+              }
+              return [...prev, { role: 'system', content: msg.data, citations: [] }];
+            });
+          } else {
+            patchMessages((prev) => [
+              ...prev,
+              { role: 'system', content: msg.data, citations: [] },
+            ]);
+          }
+          activeAssistantTurnRef.current = false;
           stopProcessing();
         }
       };
@@ -313,6 +392,7 @@ export default function ChatInterface({ onOpenCitation, isVisible }) {
     if (ws && ws.readyState === WebSocket.OPEN) {
       stopAudioPlayback();
       startProcessing();
+      ws.send(JSON.stringify({ type: 'turn', history: buildHistoryPayload() }));
       ws.send(audioBlob);
     } else {
       stopProcessing();
@@ -325,7 +405,7 @@ export default function ChatInterface({ onOpenCitation, isVisible }) {
         },
       ]);
     }
-  }, [startProcessing, stopProcessing]);
+  }, [startProcessing, stopProcessing, buildHistoryPayload]);
 
   if (!hydrated) {
     return (
